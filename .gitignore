@@ -1,5 +1,6 @@
 *.[oa]
 bwa
+*.exe
 test
 test64
 .*.swp

@@ -6,7 +6,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <signal.h>
+#if !defined(__MINGW64__) && !defined(__MINGW32__)
 #include <sys/wait.h>
+#endif
 #include <sys/types.h>
 #ifndef _WIN32
 #include <netdb.h>
@@ -20,6 +22,10 @@
 
 #ifdef _WIN32
 #define _KO_NO_NET
+#endif
+
+#if defined(__MINGW64__) || defined(__MINGW32__)
+#define _KO_NO_PIPE
 #endif
 
 #ifndef _KO_NO_NET
@@ -268,13 +274,23 @@ void *kopen(const char *fn, int *_fd)
 	koaux_t *aux = 0;
 	*_fd = -1;
 	if (strstr(fn, "http://") == fn) {
+#ifdef _KO_NO_NET
+		fprintf(stderr, "[E::%s] HTTP kopen not available on MinGW.\n", __func__);
+		return 0;
+#else
 		aux = calloc(1, sizeof(koaux_t));
 		aux->type = KO_HTTP;
 		aux->fd = http_open(fn);
+#endif
 	} else if (strstr(fn, "ftp://") == fn) {
+#ifdef _KO_NO_NET
+		fprintf(stderr, "[E::%s] FTP kopen not available on MinGW.\n", __func__);
+		return 0;
+#else
 		aux = calloc(1, sizeof(koaux_t));
 		aux->type = KO_FTP;
 		aux->fd = ftp_open(fn);
+#endif
 	} else if (strcmp(fn, "-") == 0) {
 		aux = calloc(1, sizeof(koaux_t));
 		aux->type = KO_STDIN;
@@ -284,6 +300,10 @@ void *kopen(const char *fn, int *_fd)
 		for (p = fn; *p; ++p)
 			if (!isspace(*p)) break;
 		if (*p == '<') { // pipe open
+#ifdef _KO_NO_PIPE
+			fprintf(stderr, "[E::%s] UNIX pipes not available on MinGW.\n", __func__);
+			return 0;
+#else
 			int need_shell, pfd[2];
 			pid_t pid;
 			// a simple check to see if we need to invoke a shell; not always working
@@ -315,6 +335,7 @@ void *kopen(const char *fn, int *_fd)
 				aux->fd = pfd[0];
 				aux->pid = pid;
 			}
+#endif
 		} else {
 #ifdef _WIN32
 			*_fd = open(fn, O_RDONLY | O_BINARY);
@@ -335,12 +356,14 @@ void *kopen(const char *fn, int *_fd)
 int kclose(void *a)
 {
 	koaux_t *aux = (koaux_t*)a;
+#ifndef _KO_NO_PIPE
 	if (aux->type == KO_PIPE) {
 		int status;
 		pid_t pid;
 		pid = waitpid(aux->pid, &status, WNOHANG);
 		if (pid != aux->pid) kill(aux->pid, 15);
 	}
+#endif
 	free(aux);
 	return 0;
 }

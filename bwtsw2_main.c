@@ -8,6 +8,10 @@
 #include "utils.h"
 #include "bwa.h"
 
+#if defined(__MINGW64__) || defined(__MINGW32__)
+#include "lib/drand48.h"
+#endif
+
 int bwa_bwtsw2(int argc, char *argv[])
 {
 	bsw2opt_t *opt;

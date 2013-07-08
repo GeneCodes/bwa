@@ -37,7 +37,12 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #endif
+#if defined(__MINGW64__) || defined(__MINGW32__)
+#include <windows.h>
+#define fsync _commit
+#else
 #include <sys/resource.h>
+#endif
 #include <sys/time.h>
 #include "utils.h"
 
@@ -270,9 +275,21 @@ int err_gzclose(gzFile file)
 
 double cputime()
 {
+#if defined(__MINGW64__) || defined(__MINGW32__)
+	FILETIME ctime, etime, utime, stime;
+    HANDLE myProcess = GetCurrentProcess();
+    GetProcessTimes(myProcess, &ctime, &etime, &utime, &stime);
+    ULARGE_INTEGER utime64, stime64;
+    utime64.LowPart = utime.dwLowDateTime;
+    utime64.HighPart = utime.dwHighDateTime;
+    stime64.LowPart = stime.dwLowDateTime;
+    stime64.HighPart = stime.dwHighDateTime;
+	return (utime64.QuadPart + stime64.QuadPart) / 10000000.0;
+#else
 	struct rusage r;
 	getrusage(RUSAGE_SELF, &r);
 	return r.ru_utime.tv_sec + r.ru_stime.tv_sec + 1e-6 * (r.ru_utime.tv_usec + r.ru_stime.tv_usec);
+#endif
 }
 
 double realtime()

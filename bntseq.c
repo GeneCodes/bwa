@@ -34,6 +34,10 @@
 #include "bntseq.h"
 #include "utils.h"
 
+#if defined(__MINGW64__) || defined(__MINGW32__)
+#include "lib/drand48.h"
+#endif
+
 #include "kseq.h"
 KSEQ_DECLARE(gzFile)
 

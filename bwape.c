@@ -16,6 +16,10 @@
 #  include "malloc_wrap.h"
 #endif
 
+#if defined(__MINGW64__) || defined(__MINGW32__)
+#include "lib/drand48.h"
+#endif
+
 typedef struct {
 	int n;
 	bwtint_t *a;

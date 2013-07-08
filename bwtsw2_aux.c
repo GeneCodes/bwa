@@ -26,6 +26,10 @@ KSORT_INIT(hit, bsw2hit_t, __left_lt)
 #  include "malloc_wrap.h"
 #endif
 
+#if defined(__MINGW64__) || defined(__MINGW32__)
+#include "lib/drand48.h"
+#endif
+
 
 extern unsigned char nst_nt4_table[256];
 

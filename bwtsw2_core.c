@@ -1,12 +1,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <sys/resource.h>
 #include <assert.h>
 #include "bwt_lite.h"
 #include "bwtsw2.h"
 #include "bwt.h"
 #include "kvec.h"
+#include "utils.h"
+
+#if defined(__MINGW64__) || defined(__MINGW32__)
+#include "lib/drand48.h"
+#endif
 
 #ifdef USE_MALLOC_WRAPPERS
 #  include "malloc_wrap.h"
@@ -209,13 +213,6 @@ static inline bsw2cell_t *push_array_p(bsw2entry_t *e)
 		e->array = (bsw2cell_t*)realloc(e->array, sizeof(bsw2cell_t) * e->max);
 	}
 	return e->array + e->n;
-}
-
-static inline double time_elapse(const struct rusage *curr, const struct rusage *last)
-{
-	long t1 = (curr->ru_utime.tv_sec - last->ru_utime.tv_sec) + (curr->ru_stime.tv_sec - last->ru_stime.tv_sec);
-	long t2 = (curr->ru_utime.tv_usec - last->ru_utime.tv_usec) + (curr->ru_stime.tv_usec - last->ru_stime.tv_usec);
-	return (double)t1 + t2 * 1e-6;
 }
 /* --- END: utilities --- */
 
@@ -451,7 +448,7 @@ bwtsw2_t **bsw2_core(const bntseq_t *bns, const bsw2opt_t *opt, const bwtl_t *ta
 	bsw2stack_t *stack = (bsw2stack_t*)pool->stack;
 	bwtsw2_t *b, *b1, **b_ret;
 	int i, j, score_mat[16], *heap, heap_size, n_tot = 0;
-	struct rusage curr, last;
+	double curr_time, last_time;
 	khash_t(qintv) *rhash;
 	khash_t(64) *chash;
 
@@ -474,7 +471,7 @@ bwtsw2_t **bsw2_core(const bntseq_t *bns, const bsw2opt_t *opt, const bwtl_t *ta
 	b_ret = calloc(2, sizeof(void*));
 	b_ret[0] = b; b_ret[1] = b1;
 	// initialize timer
-	getrusage(0, &last);
+	last_time = cputime();
 	// the main loop: traversal of the DAG
 	while (!stack_isempty(stack)) {
 		int old_n, tj;
@@ -603,13 +600,13 @@ bwtsw2_t **bsw2_core(const bntseq_t *bns, const bsw2opt_t *opt, const bwtl_t *ta
 		} // ~for(tj)
 		mp_free(stack->pool, v);
 	} // while(top)
-	getrusage(0, &curr);
+	curr_time = cputime();
 	for (i = 0; i < 2; ++i)
 		for (j = 0; j < b_ret[i]->n; ++j)
 			b_ret[i]->hits[j].n_seeds = 0;
 	bsw2_resolve_duphits(bns, query, b, opt->is);
 	bsw2_resolve_duphits(bns, query, b1, opt->is);
-	//fprintf(stderr, "stats: %.3lf sec; %d elems\n", time_elapse(&curr, &last), n_tot);
+	//fprintf(stderr, "stats: %.3lf sec; %d elems\n", (curr_time - last_time), n_tot);
 	// free
 	free(heap);
 	kh_destroy(qintv, rhash);

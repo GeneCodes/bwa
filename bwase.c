@@ -17,6 +17,10 @@
 #  include "malloc_wrap.h"
 #endif
 
+#if defined(__MINGW64__) || defined(__MINGW32__)
+#include "lib/drand48.h"
+#endif
+
 int g_log_n[256];
 
 void bwa_print_sam_PG();
