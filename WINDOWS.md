@@ -1,4 +1,4 @@
-BWA for Windows -- v0.7.5a
+BWA for Windows - v0.7.5a
 =========================
 
 Source Code Modifications
@@ -37,7 +37,7 @@ BWA was designed for compilation under UNIX/POSIX-compliant systems.  To compile
 		#endif
 		
 5.	A Windows implementation of `cputime()` was added to `utils.c`.
-	`cputime()` now calls `getrusage() on UNIX and `GetProcessTimes()` on
+	`cputime()` now calls `getrusage()` on UNIX and `GetProcessTimes()` on
 	Windows.  The Windows implementation was adapted from the Windows port of Maq.
 	The timing functionality in `bwtsw2_core.c` was modified to use this cross-platform
 	timer.  In particular, calls to `getrusage()` were replaced by calls to `cputime()`,
