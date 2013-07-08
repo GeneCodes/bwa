@@ -1,4 +1,4 @@
-BWA 0.6.2 for Windows
+BWA for Windows -- v0.7.5a
 =========================
 
 Source Code Modifications
