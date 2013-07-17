@@ -14,6 +14,11 @@ INCLUDES=
 LIBS=		-lm -lz -lpthread
 SUBDIRS=	.
 
+# For Windows compilation under mingw-w64
+ifneq (,$(findstring MINGW,$(SYSTEM)))
+override DFLAGS := $(DFLAGS) -D__USE_MINGW_ANSI_STDIO=1
+endif
+
 .SUFFIXES:.c .o .cc
 
 .c.o:
