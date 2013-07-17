@@ -14,6 +14,8 @@ INCLUDES=
 LIBS=		-lm -lz -lpthread
 SUBDIRS=	.
 
+SYSTEM = $(shell uname -s)
+
 # For Windows compilation under mingw-w64
 ifneq (,$(findstring MINGW,$(SYSTEM)))
 override DFLAGS := $(DFLAGS) -D__USE_MINGW_ANSI_STDIO=1
