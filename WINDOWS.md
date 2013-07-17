@@ -60,4 +60,6 @@ BWA was designed for compilation under UNIX/POSIX-compliant systems.  To compile
 	with those provided by the standard C library.
 8.	`-static -msse2` was added to `CFLAGS` in `Makefile` so that the `winpthread` library
 	will be linked statically and so that the functions that depend on SSE2 will compile
-	in a 32-bit environment.
+	in a 32-bit environment.  `-D__USE_MINGW_ANSI_STDIO=1` was also set (for MinGW only)
+	so that the buggy MSVCRT stdio will not be used.  Bad format string handling for
+	64-bit types in MSVCRT causes a crash on Windows XP x86.
